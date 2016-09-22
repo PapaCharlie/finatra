@@ -154,9 +154,59 @@
 
 <p><em>Note</em>: with Maven, you <strong>must</strong> append the appropriate scala version to the artifact name (in this example, <code>_2.11</code>). See the Finatra <a href="https://github.com/twitter/finatra/tree/finatra-2.2.0/examples/hello-world">hello-world</a> example for a more in-depth example.</p>
 
+<h4>Additional Repository</h4>
+
+<p>Finatra (through it&rsquo;s dependency on <a href="http://twitter.github.io/finagle/">Finagle</a>) has transitive dependencies that are not published to maven central and are <strong>only available</strong> via the Twitter <code>maven.twttr.com</code> repository. We realize that this is less than ideal, and we hope to be able to publish these dependencies to maven central in the future. For now it requires that you also add a way to resolve these dependencies from the <code>maven.twttr.com</code> repository.</p>
+
+<p>To do so with <a href="http://www.scala-sbt.org/">sbt</a> you would add an additional resolver:</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+</pre></td><td class='code'><pre><code class='xml'><span class='line'>resolvers ++= Seq(
+</span><span class='line'>  Resolver.sonatypeRepo(&quot;releases&quot;),
+</span><span class='line'>  &quot;Twitter Maven&quot; at &quot;https://maven.twttr.com&quot;
+</span><span class='line'>)
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>And in <a href="http://maven.apache.org/">Maven</a>, list as a <code>&lt;respository/&gt;</code>:</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+<span class='line-number'>13</span>
+<span class='line-number'>14</span>
+</pre></td><td class='code'><pre><code class='xml'><span class='line'><span class="nt">&lt;repositories&gt;</span>
+</span><span class='line'>    <span class="nt">&lt;repository&gt;</span>
+</span><span class='line'>      <span class="nt">&lt;id&gt;</span>twitter-repo<span class="nt">&lt;/id&gt;</span>
+</span><span class='line'>      <span class="nt">&lt;name&gt;</span>twitter-repo<span class="nt">&lt;/name&gt;</span>
+</span><span class='line'>      <span class="nt">&lt;url&gt;</span>https://maven.twttr.com<span class="nt">&lt;/url&gt;</span>
+</span><span class='line'>    <span class="nt">&lt;/repository&gt;</span>
+</span><span class='line'>  <span class="nt">&lt;/repositories&gt;</span>
+</span><span class='line'>  <span class="nt">&lt;pluginRepositories&gt;</span>
+</span><span class='line'>    <span class="nt">&lt;pluginRepository&gt;</span>
+</span><span class='line'>      <span class="nt">&lt;id&gt;</span>twitter-repo<span class="nt">&lt;/id&gt;</span>
+</span><span class='line'>      <span class="nt">&lt;name&gt;</span>twitter-repo<span class="nt">&lt;/name&gt;</span>
+</span><span class='line'>      <span class="nt">&lt;url&gt;</span>https://maven.twttr.com<span class="nt">&lt;/url&gt;</span>
+</span><span class='line'>    <span class="nt">&lt;/pluginRepository&gt;</span>
+</span><span class='line'>  <span class="nt">&lt;/pluginRepositories&gt;</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
 <h4>Test dependencies</h4>
 
-<p>Finatra currently publishes <a href="https://maven.apache.org/guides/mini/guide-attached-tests.html">test-jars</a> for most modules. The <code>test-jars</code> include re-usable utilities for use in testing (e.g., the <a href="https://github.com/twitter/finatra/blob/finatra-2.2.0/inject/inject-server/src/test/scala/com/twitter/inject/server/EmbeddedTwitterServer.scala">EmbeddedTwitterServer</a>). To add a <code>test-jar</code> dependency, depend on the appropriate module with the <code>tests</code> classifier. Additionally, these dependencies are typically only needed in the <code>test</code> scope for your project. E.g., with <a href="http://www.scala-sbt.org/">sbt</a>:</p>
+<p>Finatra publishes <a href="https://maven.apache.org/guides/mini/guide-attached-tests.html">test-jars</a> for most modules. The <code>test-jars</code> include re-usable utilities for use in testing (e.g., the <a href="https://github.com/twitter/finatra/blob/develop/inject/inject-server/src/test/scala/com/twitter/inject/server/EmbeddedTwitterServer.scala">EmbeddedTwitterServer</a>). To add a <code>test-jar</code> dependency, depend on the appropriate module with the <code>tests</code> classifier. Additionally, these dependencies are typically only needed in the <code>test</code> scope for your project. E.g., with <a href="http://www.scala-sbt.org/">sbt</a>:</p>
 
 <figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
 </pre></td><td class='code'><pre><code class='xml'><span class='line'>&quot;com.twitter&quot; %% &quot;finatra-http&quot; % VERSION % &quot;test&quot; classifier &quot;tests&quot;
@@ -208,7 +258,11 @@
 </span></code></pre></td></tr></table></div></figure>
 
 
-<p><em>Note</em>: There is a <a href="https://maven.apache.org/plugins/maven-jar-plugin/examples/create-test-jar.html">downside</a> to the current way Finatra <code>test-jars</code> are published: you don&rsquo;t get the transitive test-scoped dependencies automatically. Maven and sbt only resolve the compile-time dependencies, so you&rsquo;ll have to add all the other required test-scoped dependencies by hand. We hope to address this limitation to the published <code>test-jars</code> in a future release.</p>
+<p></p>
+
+<p>There is a <strong><a href="https://maven.apache.org/plugins/maven-jar-plugin/examples/create-test-jar.html">downside</a></strong> to the current way Finatra <code>test-jars</code> are published: you don&rsquo;t get the transitive test-scoped dependencies automatically. Maven and sbt only resolve compile-time dependencies transitively, so you&rsquo;ll have to specify all other required test-scoped dependencies manually.</p>
+
+<p>For example, the finatra-http <code>test-jar</code> depends on inject-app <code>test-jar</code> (among others). You will have to manually add a dependency on the inject-app <code>test-jar</code> since it will not be picked up transitively. We hope to address this limitation to the published <code>test-jars</code> in a future release.</p>
 
 <h4>Lightbend Activator</h4>
 
